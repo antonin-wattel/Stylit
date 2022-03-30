@@ -38,6 +38,8 @@ namespace fs = std::filesystem;
 #include "Rasterizer.h"
 #include "RayTracer.h"
 
+#include "Stylit.h"
+
 using namespace std;
 
 // Window parameters
@@ -69,6 +71,7 @@ static bool isDisplayRaytracing = false;
 static bool isAnimated = false;
 
 void clear ();
+void keyCallback(GLFWwindow* windowPtr, int key, int scancode, int action, int mods);
 
 void printHelp () {
 	Console::print (std::string ("Help:\n") 
@@ -82,6 +85,7 @@ void printHelp () {
    			  + "\t* F12: reload GPU shaders\n"
    			  + "\t* S: save the raytraced image in "+ DEFAULT_RAYTRACED_IMAGE_OUTPUT_FILENAME + "\n" //	 to fo: this will need some change !!!
 			  + "\t* L: save the LPE buffers pf raytraced image"+ "\n" 
+			  +"\t* M: save multiple LPE channels of the image" + "\n"
    			  + "\t* D: save the rasterized image in "+ DEFAULT_RASTERIZED_IMAGE_OUTPUT_FILENAME + "\n"
    			  + "\t* F/Shift+F: increase/decrease field of view\n"
    			  + "\t* TAB: switch between rasterization and ray tracing display\n"
@@ -104,52 +108,7 @@ void raytrace () {
 	Console::print ("Ray tracing executed in " + std::to_string(elapsedTime) + "ms");
 }
 
-/// Executed each time a key is entered.
-void keyCallback (GLFWwindow * windowPtr, int key, int scancode, int action, int mods) {
-	if (action == GLFW_PRESS) {
-		if (key == GLFW_KEY_H) {
-			printHelp ();
-		} else if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
-			glfwSetWindowShouldClose (windowPtr, true); // Closes the application if the escape key is pressed
-		} else if (action == GLFW_PRESS && key == GLFW_KEY_F12) {
-			rasterizerPtr->loadShaderProgram (basePath);
-			Console::print ("Reloading all shaders");
-		} else if (action == GLFW_PRESS && key == GLFW_KEY_S) {
-			Console::print ("Start writing raytraced rendering to " + DEFAULT_RAYTRACED_IMAGE_OUTPUT_FILENAME);
-			rayTracerPtr->image()->save (DEFAULT_RAYTRACED_IMAGE_OUTPUT_FILENAME);
 
-			//////
-			//TO DO: DIFFERENT KEY FOR SAVING LPES
-			rayTracerPtr->lpes().save_lpes();
-			//////
-
-			Console::print ("End writing raytraced rendering");
-
-		} else if (action == GLFW_PRESS && key == GLFW_KEY_L) {
-			Console::print ("Start writing LPE renderings");
-			rayTracerPtr->lpes().save_lpes();
-			Console::print ("End writing LPE renderings");
-		} else if (action == GLFW_PRESS && key == GLFW_KEY_D) {
-			Console::print ("Start writing rasterized rendering to " + DEFAULT_RASTERIZED_IMAGE_OUTPUT_FILENAME);
-			auto imagePtr = rasterizerPtr->generateImage();
-			imagePtr->save (DEFAULT_RASTERIZED_IMAGE_OUTPUT_FILENAME);
-			Console::print ("End writing rasterized rendering");
-		} else if (action == GLFW_PRESS && key == GLFW_KEY_F) {
-			scenePtr->camera()->setFoV (glm::clamp (scenePtr->camera()->getFoV () + (mods&GLFW_MOD_SHIFT ? -1.f : 1.f) * 5.f, 5.f, 120.f));
-			Console::print ("Camera FoV set to: " + std::to_string (scenePtr->camera()->getFoV ()));
-		} else if (action == GLFW_PRESS && key == GLFW_KEY_TAB) {
-			isDisplayRaytracing = !isDisplayRaytracing;
-			Console::print ("Raytracing display " + isDisplayRaytracing ? "activated" : "desactivated");
-		} else if (action == GLFW_PRESS && key == GLFW_KEY_SPACE) {
-			raytrace ();
-		} else if (action == GLFW_PRESS && key == GLFW_KEY_P) {
-			isAnimated = !isAnimated;
-			Console::print ("Animation " + isAnimated ? "started" : "stopped");
-		} else {
-			printHelp ();
-		}
-	}
-}
 
 /// Called each time the mouse cursor moves
 void cursorPosCallback(GLFWwindow* window, double xpos, double ypos) {
@@ -243,7 +202,8 @@ void initGLFW () {
 	glfwSetMouseButtonCallback (windowPtr, mouseButtonCallback);
 }
 
-void initScene () {
+void InitScene(std::string meshfile){
+//void initScene () {
 	scenePtr = std::make_shared<Scene> ();
 	//scenePtr->setBackgroundColor (glm::vec3 (0.1f, 0.5f, 0.95f));
 	scenePtr->setBackgroundColor (glm::vec3 (0.0f, 0.0f, 0.0f));
@@ -252,7 +212,7 @@ void initScene () {
 
 	std::shared_ptr<Mesh> mainMeshPtr;
 	try {
-		mainMeshPtr = IO::loadOFFMesh (meshFilename);
+		mainMeshPtr = IO::loadOFFMesh (meshfile);
 	} catch (std::exception & e) {
 		exitOnCriticalError (std::string ("[Error loading mesh]") + e.what ());
 	}
@@ -260,7 +220,7 @@ void initScene () {
 	center = bbox.center ();
 	meshScale = bbox.size ();
 	//auto mainMaterialPtr = std::make_shared<Material> (glm::vec3 (1.0, 0.85, 0.0f), 0.4, 0.0);
-	auto mainMaterialPtr = std::make_shared<Material> (glm::vec3 (1.0, 0.1, 0.0f), 0.1, 0.3);
+	auto mainMaterialPtr = std::make_shared<Material> (glm::vec3 (1.0, 0.f, 0.0f), 0.2, 0.8);
 	scenePtr->add (mainMeshPtr);
 	scenePtr->add (mainMaterialPtr);
 	scenePtr->assignMaterial (0, 0);
@@ -277,7 +237,7 @@ void initScene () {
 	groundMeshPtr->triangleIndices().push_back (glm::uvec3 (0, 1, 2));
 	groundMeshPtr->triangleIndices().push_back (glm::uvec3 (0, 2, 3));
 	groundMeshPtr->recomputePerVertexNormals ();
-    auto groundMaterialPtr = std::make_shared<Material> (glm::vec3 (1., 1., 1.f), 0.3, 0.);
+    auto groundMaterialPtr = std::make_shared<Material> (glm::vec3 (0.8f, 0.8f, 0.8f), 0.2, 0.);
     scenePtr->add (groundMeshPtr);
     scenePtr->add (groundMaterialPtr);
 	scenePtr->assignMaterial (1, 1);
@@ -293,7 +253,7 @@ void initScene () {
 	wallMeshPtr->triangleIndices().push_back (glm::uvec3 (0, 1, 2));
 	wallMeshPtr->triangleIndices().push_back (glm::uvec3 (0, 2, 3));
 	wallMeshPtr->recomputePerVertexNormals ();
-    auto wallMaterialPtr = std::make_shared<Material> (glm::vec3 (1., 1., 1.), 0.5, 0.);
+    auto wallMaterialPtr = std::make_shared<Material> (glm::vec3 (0.8f, 0.8f, 0.8f), 0.2, 0.);
     scenePtr->add (wallMeshPtr);
     scenePtr->add (wallMaterialPtr);
 	scenePtr->assignMaterial (2, 2);
@@ -307,14 +267,14 @@ void initScene () {
 	//scenePtr->add (std::make_shared<LightSource> (normalize (glm::vec3(-2.f, -0.5f, 0.f)), glm::vec3(0.2f, 0.6f, 1.f), 0.25f)); // Fill light
 	//scenePtr->add (std::make_shared<LightSource> (normalize (glm::vec3(2.f, -0.5f, 0.f)), glm::vec3(1.0f, 0.25f, 0.1f), 0.25f)); // Rim light
 
-	std::shared_ptr<LightSource> arealightsource = (std::make_shared<LightSource> (normalize (glm::vec3(2.f, -0.5f, 0.f)), glm::vec3(1.0f, 1.0f, 1.0f), 1.2f));
+	std::shared_ptr<LightSource> arealightsource = (std::make_shared<LightSource> (normalize (glm::vec3(2.f, -0.5f, 0.f)), glm::vec3(1.0f, 1.0f, 1.0f), 2.5f));
 	std::shared_ptr<Mesh> lightRectangle  = std::make_shared<Mesh> ();
 
 	startP = bbox.center () + glm::vec3 (0.3f*extent, 1.1f*extent, -0.1f*extent) ;//+ glm::vec3 (-extent*2, -bbox.height()/2.f, -extent*2) + glm::vec3({-0.5, -0.5, -0.5});
 	lightRectangle->vertexPositions().push_back (startP); 
-	lightRectangle->vertexPositions().push_back (startP + glm::vec3 (0.f, 0.f, 1.f*extent));
-	lightRectangle->vertexPositions().push_back (startP + glm::vec3 (1.f*extent, 0.f, 1.f*extent));
-	lightRectangle->vertexPositions().push_back (startP + glm::vec3 (1.f*extent, 0.f, 0.f));
+	lightRectangle->vertexPositions().push_back (startP + glm::vec3 (0.f, 0.f, 2.f*extent));
+	lightRectangle->vertexPositions().push_back (startP + glm::vec3 (1.5f*extent, 0.f, 1.5f*extent));
+	lightRectangle->vertexPositions().push_back (startP + glm::vec3 (1.5f*extent, 0.f, 0.f));
 	lightRectangle->triangleIndices().push_back (glm::uvec3 (0, 1, 2));
 	lightRectangle->triangleIndices().push_back (glm::uvec3 (0, 2, 3));
 	lightRectangle->recomputePerVertexNormals ();
@@ -346,7 +306,7 @@ void init () {
 	initGLFW (); // Windowing system
 	if (!gladLoadGLLoader ((GLADloadproc)glfwGetProcAddress)) // Load extensions for modern OpenGL
 		exitOnCriticalError ("[Failed to initialize OpenGL context]");
-	initScene (); // Actual scene to render
+	InitScene (meshFilename); // Actual scene to render
 	rasterizerPtr = make_shared<Rasterizer> ();
 	rasterizerPtr->init (basePath, scenePtr); // Mut be called before creating the scene, to generate an OpenGL context and allow mesh VBOs
 	rayTracerPtr = make_shared<RayTracer> ();
@@ -404,6 +364,101 @@ void parseCommandLine (int argc, char ** argv) {
 	fs::path appPath = argv[0];
 	basePath = appPath.parent_path().string(); 
 	meshFilename = basePath + "/" + (argc >= 2 ? argv[1] : DEFAULT_MESH_FILENAME);
+}
+
+
+/// Executed each time a key is entered.
+void keyCallback(GLFWwindow* windowPtr, int key, int scancode, int action, int mods) {
+	if (action == GLFW_PRESS) {
+		if (key == GLFW_KEY_H) {
+			printHelp();
+		}
+		else if (action == GLFW_PRESS && key == GLFW_KEY_ESCAPE) {
+			glfwSetWindowShouldClose(windowPtr, true); // Closes the application if the escape key is pressed
+		}
+		else if (action == GLFW_PRESS && key == GLFW_KEY_F12) {
+			rasterizerPtr->loadShaderProgram(basePath);
+			Console::print("Reloading all shaders");
+		}
+		else if (action == GLFW_PRESS && key == GLFW_KEY_S) {
+			Console::print("Start writing raytraced rendering to " + DEFAULT_RAYTRACED_IMAGE_OUTPUT_FILENAME);
+			rayTracerPtr->image()->save(DEFAULT_RAYTRACED_IMAGE_OUTPUT_FILENAME);
+			Console::print("End writing raytraced rendering");
+
+		}
+		else if (action == GLFW_PRESS && key == GLFW_KEY_L) {
+			Console::print("Start writing LPE renderings");
+			rayTracerPtr->lpes().save_lpes();
+			Console::print("End writing LPE renderings");
+		}
+		else if (action == GLFW_PRESS && key == GLFW_KEY_M) {
+			Console::print("Start writing multiple channels lpe");
+			rayTracerPtr->image_multichannel()->save_all_channels("multiple_channels_");
+			Console::print("End writing multiple channels");
+		}
+		else if (action == GLFW_PRESS && key == GLFW_KEY_D) {
+			Console::print("Start writing rasterized rendering to " + DEFAULT_RASTERIZED_IMAGE_OUTPUT_FILENAME);
+			auto imagePtr = rasterizerPtr->generateImage();
+			imagePtr->save(DEFAULT_RASTERIZED_IMAGE_OUTPUT_FILENAME);
+			Console::print("End writing rasterized rendering");
+		}
+		else if (action == GLFW_PRESS && key == GLFW_KEY_F) {
+			scenePtr->camera()->setFoV(glm::clamp(scenePtr->camera()->getFoV() + (mods & GLFW_MOD_SHIFT ? -1.f : 1.f) * 5.f, 5.f, 120.f));
+			Console::print("Camera FoV set to: " + std::to_string(scenePtr->camera()->getFoV()));
+		}
+		else if (action == GLFW_PRESS && key == GLFW_KEY_TAB) {
+			isDisplayRaytracing = !isDisplayRaytracing;
+			Console::print("Raytracing display " + isDisplayRaytracing ? "activated" : "desactivated");
+		}
+		else if (action == GLFW_PRESS && key == GLFW_KEY_SPACE) {
+			raytrace();
+		}
+		else if (action == GLFW_PRESS && key == GLFW_KEY_P) {
+			isAnimated = !isAnimated;
+			Console::print("Animation " + isAnimated ? "started" : "stopped");
+
+		}
+
+		//////////////////////////////
+		//TO DO: make a function
+		else if (action == GLFW_PRESS && key == GLFW_KEY_R) {
+
+			std::pair<Image_multichannel, Image> A, B;
+			
+			//init scene with first mesh (high_res_sphere)
+			//store the multichannel image in A.first
+			InitScene("resources/models/sphere_high_res.off");
+			raytrace();
+			rayTracerPtr->image_multichannel()->save_all_channels("sphere_high_res_");
+
+			A.first = *rayTracerPtr->image_multichannel(); //TO DO: make a copy
+
+			//init scene with second mesh (user choice -> take an argument)
+			//store the multichannel image in B.first
+			InitScene("resources/models/face.off");
+			raytrace();
+			rayTracerPtr->image_multichannel()->save_all_channels("face_");
+
+			B.first = *rayTracerPtr->image_multichannel(); //TO DO: make a copy
+
+
+			//read style exemplar and store it in A.second
+			A.second = Image("resources/Style_exemplars/test.png");
+			A.second.save("test_read.png");
+			//resize it !
+
+			//initialize B.second with zeros
+
+			Console::print("Stylit");
+
+			run_stylit(A, B);
+			//////////////////////////////
+
+		}
+		else {
+			printHelp();
+		}
+	}
 }
 
 int main (int argc, char ** argv) {

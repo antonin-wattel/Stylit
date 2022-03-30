@@ -23,12 +23,13 @@
 std::random_device rd;
 std::default_random_engine eng(rd());
 std::uniform_real_distribution<> distr(0.f, 1.f);
-size_t max_bounces = 3;
+size_t max_bounces = 2;
 //-----------------------------------
 
 RayTracer::RayTracer():
 	Renderer (), 
-	m_imagePtr (std::make_shared<Image>()) {}
+	m_imagePtr (std::make_shared<Image>()),
+	m_image_multichannelPtr(std::make_shared<Image_multichannel>()) {}
 
 RayTracer::~RayTracer() {}
 
@@ -55,6 +56,8 @@ void RayTracer::render (const std::shared_ptr<Scene> scenePtr) {
 	size_t height = m_imagePtr->height();
 	m_imagePtr->clear (scenePtr->backgroundColor ());
 
+	m_image_multichannelPtr->clear(scenePtr->backgroundColor());
+
 	//clean this
 	m_LPEs.full->clear (scenePtr->backgroundColor ());
 	m_LPEs.lde->clear (scenePtr->backgroundColor ());
@@ -63,7 +66,7 @@ void RayTracer::render (const std::shared_ptr<Scene> scenePtr) {
 	m_LPEs.indirect->clear(scenePtr->backgroundColor());
 
 	const auto cameraPtr = scenePtr->camera();
-	size_t sample_count =  10;
+	int sample_count =  10;
 	
 
 //where to put the pragma parallel
@@ -122,6 +125,10 @@ void RayTracer::render (const std::shared_ptr<Scene> scenePtr) {
 
 			m_imagePtr->operator()(x, y) = color_responses.full ;
 
+			//
+			m_image_multichannelPtr->operator()(0, x, y) = color_responses.full;
+			//
+
 		}
 	}
 
@@ -134,7 +141,7 @@ bool RayTracer::rayTrace(const Ray& ray, const std::shared_ptr<Scene> scene, siz
 	std::vector<std::pair<size_t,size_t>> candidateMeshTrianglePairs;
 
 	//BVH ray intersection
-	candidateMeshTrianglePairs.reserve (32);
+	candidateMeshTrianglePairs.reserve (64);
 	m_bvh->intersect(ray, candidateMeshTrianglePairs);
 
 	//Naive ray-intersection routine
@@ -300,6 +307,10 @@ glm::vec3 RayTracer::shade(ColorResponses& color_responses, const std::shared_pt
 						if (bounces >= max_bounces - 1) {//two first diffuse bounces
 							color_responses.ld12e += (lightRadiance(light, hitPosition) * fs_fd.first * wiDotN) / float(Ni);
 						}
+						//	to fix !!!
+						//if (bounces < max_bounces ) {//two first diffuse bounces
+						//	color_responses.indirect += (lightRadiance(light, hitPosition) * fs_fd.first * wiDotN) / float(Ni);
+						//}
 				}
 
 			//}
@@ -308,7 +319,7 @@ glm::vec3 RayTracer::shade(ColorResponses& color_responses, const std::shared_pt
 		if (bounces > 0) {
 			//russian roulette
 			float rr = distr(eng);
-			if (rr > 0.7) {
+			if (rr > 0.2) {
 				bounces = 0;
 				return colorResponse;
 			}
@@ -324,23 +335,30 @@ glm::vec3 RayTracer::shade(ColorResponses& color_responses, const std::shared_pt
 		////generate random direction
 		//	glm::vec3 psi;
 
-		float r1 = (distr(eng));
-		float r2 = (distr(eng));
-		glm::vec3 random_point  = uniformSampleHemisphere(r1, r2);
-		//transform to the local coordinate system
-		
-		Ray random_ray = Ray(hitPosition, random_point);
-		float pdf = 1 / (2 * PI);
 
-		glm::vec3 color = r1 * sample(color_responses, scenePtr, random_ray, 0, 0, bounces - 1) / pdf;
-		color_responses.full += color;
-		color_responses.indirect += color;
+			float r1 = (distr(eng));
+			float r2 = (distr(eng));
+			glm::vec3 random_point = uniformSampleHemisphere(r1, r2);
+			//transform to the local coordinate system
+
+			Ray random_ray = Ray(hitPosition, random_point);
+			float pdf = 1 / (2 * PI);
+
+
+			//not so sure about this...
+			fs_fd = materialReflectance(scenePtr, materialPtr, random_point, wo, hitNormal);
+
+			glm::vec3 color = r1 * sample(color_responses, scenePtr, random_ray, 0, 0, bounces - 1) * (fs_fd.first + fs_fd.second) / pdf;
+			//color_responses.full += color;
+
+			color_responses.indirect += color;
+		
 		//
 		////radiance = trace(x, psi)
 		////estimated_radiance += compute_radiance(y, -psi) * BRDF(x, psi, theta) * cos(Nx, psi) / pdf(psi)
 
 
-		////color += lightRadiance(light, hitPosition) * materialReflectance(scenePtr, materialPtr, wi, wo, wm) * wiDotN;
+		//color += lightRadiance(light, hitPosition) * materialReflectance(scenePtr, materialPtr, wi, wo, wm) * wiDotN;
 		////--------
 
 		/////-----------

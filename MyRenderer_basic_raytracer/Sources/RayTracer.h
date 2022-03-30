@@ -22,6 +22,8 @@
 
 #include "BVH.h" 
 
+#include "Image_multichannel.h"
+
 using namespace std;
 
 
@@ -56,7 +58,9 @@ public:
 
 	inline void setResolution (int width, int height) { 
 		m_imagePtr = make_shared<Image> (width, height); 
+
 		//clean this
+		m_image_multichannelPtr = make_shared<Image_multichannel>(width, height, 5);
 		m_LPEs.full = make_shared<Image> (width, height); 
 		m_LPEs.ld12e = make_shared<Image> (width, height); 
 		m_LPEs.lde = make_shared<Image> (width, height); 
@@ -66,6 +70,9 @@ public:
 
 	inline std::shared_ptr<Image> image () { return m_imagePtr; }
 	inline const std::shared_ptr<Image> image () const { return m_imagePtr; }
+
+	inline std::shared_ptr<Image_multichannel> image_multichannel() { return m_image_multichannelPtr; }
+	inline const std::shared_ptr<Image_multichannel> image_multichannel() const { return m_image_multichannelPtr; }
 
 	inline LPEs lpes () { return m_LPEs; }
 	inline LPEs lpes () const { return m_LPEs; }
@@ -118,6 +125,8 @@ private:
 
 	std::shared_ptr<Image> m_imagePtr; // TO DO: THIS NEEDS TO BE A BUFFER OF IMAGES, STORING DIFFERENT LPE CHANNELS
 	LPEs  m_LPEs;
+
+	std::shared_ptr<Image_multichannel> m_image_multichannelPtr;
 
 	std::unique_ptr<BVH> m_bvh;
 };

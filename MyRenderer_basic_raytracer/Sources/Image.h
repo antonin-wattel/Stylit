@@ -17,6 +17,7 @@
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 
+
 class Image {
 public:
 	inline Image (size_t width = 64, size_t height = 64) : 
@@ -25,15 +26,17 @@ public:
 		m_pixels.resize (width*height, glm::vec3 (0.f, 0.f, 0.f));
 	}
 
+	Image (const std::string& filename) ;
+
 	inline virtual ~Image () {}
 
 	inline size_t width () const { return m_width; }
 
 	inline size_t height () const { return m_height; }
 
-	inline const glm::vec3 & operator() (size_t x, size_t y) const { return m_pixels[y*m_width+x]; }
-
 	inline glm::vec3 & operator() (size_t x, size_t y) { return m_pixels[y*m_width+x]; }
+
+	inline const glm::vec3 & operator() (size_t x, size_t y) const { return m_pixels[y*m_width+x]; }
 
 	inline const glm::vec3 & operator[] (size_t i) const { return m_pixels[i]; }
 
@@ -68,6 +71,7 @@ public:
 	}
 
 	void save (const std::string & filename) const;
+	//void read (const std::string& filename);
 
 private:
 	size_t m_width;

@@ -39,7 +39,11 @@ add_executable (
 	Sources/Transform.h
 	Sources/BVH.h
 	Sources/BVH.cpp
-)
+	Sources/Stylit.h
+	Sources/Stylit.cpp
+	Sources/Image_multichannel.h
+	Sources/Image_multichannel.cpp
+  )
 
 set_target_properties(MyRenderer PROPERTIES
     CXX_STANDARD 17
