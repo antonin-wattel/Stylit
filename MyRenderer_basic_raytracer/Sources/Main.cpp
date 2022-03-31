@@ -220,7 +220,7 @@ void InitScene(std::string meshfile){
 	center = bbox.center ();
 	meshScale = bbox.size ();
 	//auto mainMaterialPtr = std::make_shared<Material> (glm::vec3 (1.0, 0.85, 0.0f), 0.4, 0.0);
-	auto mainMaterialPtr = std::make_shared<Material> (glm::vec3 (1.0, 0.f, 0.0f), 0.2, 0.8);
+	auto mainMaterialPtr = std::make_shared<Material> (glm::vec3 (1.0, 0.f, 0.0f), 0.1, 0.);
 	scenePtr->add (mainMeshPtr);
 	scenePtr->add (mainMaterialPtr);
 	scenePtr->assignMaterial (0, 0);
@@ -237,7 +237,7 @@ void InitScene(std::string meshfile){
 	groundMeshPtr->triangleIndices().push_back (glm::uvec3 (0, 1, 2));
 	groundMeshPtr->triangleIndices().push_back (glm::uvec3 (0, 2, 3));
 	groundMeshPtr->recomputePerVertexNormals ();
-    auto groundMaterialPtr = std::make_shared<Material> (glm::vec3 (0.8f, 0.8f, 0.8f), 0.2, 0.);
+    auto groundMaterialPtr = std::make_shared<Material> (glm::vec3 (0.05f, 0.05f, 0.05f), 1.f, 0.);
     scenePtr->add (groundMeshPtr);
     scenePtr->add (groundMaterialPtr);
 	scenePtr->assignMaterial (1, 1);
@@ -253,7 +253,7 @@ void InitScene(std::string meshfile){
 	wallMeshPtr->triangleIndices().push_back (glm::uvec3 (0, 1, 2));
 	wallMeshPtr->triangleIndices().push_back (glm::uvec3 (0, 2, 3));
 	wallMeshPtr->recomputePerVertexNormals ();
-    auto wallMaterialPtr = std::make_shared<Material> (glm::vec3 (0.8f, 0.8f, 0.8f), 0.2, 0.);
+    auto wallMaterialPtr = std::make_shared<Material> (glm::vec3 (0.02f, 0.02f, 0.02f), 1.f, 0.);
     scenePtr->add (wallMeshPtr);
     scenePtr->add (wallMaterialPtr);
 	scenePtr->assignMaterial (2, 2);
@@ -267,14 +267,15 @@ void InitScene(std::string meshfile){
 	//scenePtr->add (std::make_shared<LightSource> (normalize (glm::vec3(-2.f, -0.5f, 0.f)), glm::vec3(0.2f, 0.6f, 1.f), 0.25f)); // Fill light
 	//scenePtr->add (std::make_shared<LightSource> (normalize (glm::vec3(2.f, -0.5f, 0.f)), glm::vec3(1.0f, 0.25f, 0.1f), 0.25f)); // Rim light
 
-	std::shared_ptr<LightSource> arealightsource = (std::make_shared<LightSource> (normalize (glm::vec3(2.f, -0.5f, 0.f)), glm::vec3(1.0f, 1.0f, 1.0f), 2.5f));
+	std::shared_ptr<LightSource> arealightsource = (std::make_shared<LightSource> (normalize (glm::vec3(2.f, -0.5f, 0.f)), glm::vec3(1.0f, 1.0f, 1.0f), 5.0f)); // direction does not matter here 
 	std::shared_ptr<Mesh> lightRectangle  = std::make_shared<Mesh> ();
 
-	startP = bbox.center () + glm::vec3 (0.3f*extent, 1.1f*extent, -0.1f*extent) ;//+ glm::vec3 (-extent*2, -bbox.height()/2.f, -extent*2) + glm::vec3({-0.5, -0.5, -0.5});
+	//startP = bbox.center () + glm::vec3 (0.3f*extent, 1.1f*extent, -0.1f*extent) ;//+ glm::vec3 (-extent*2, -bbox.height()/2.f, -extent*2) + glm::vec3({-0.5, -0.5, -0.5});
+	startP = bbox.center () + glm::vec3 (0.01f*extent, 1.f*extent, -0.8f*extent) ;
 	lightRectangle->vertexPositions().push_back (startP); 
 	lightRectangle->vertexPositions().push_back (startP + glm::vec3 (0.f, 0.f, 2.f*extent));
-	lightRectangle->vertexPositions().push_back (startP + glm::vec3 (1.5f*extent, 0.f, 1.5f*extent));
-	lightRectangle->vertexPositions().push_back (startP + glm::vec3 (1.5f*extent, 0.f, 0.f));
+	lightRectangle->vertexPositions().push_back (startP + glm::vec3 (2.f*extent, 0.f, 2.f*extent));
+	lightRectangle->vertexPositions().push_back (startP + glm::vec3 (2.f*extent, 0.f, 0.f));
 	lightRectangle->triangleIndices().push_back (glm::uvec3 (0, 1, 2));
 	lightRectangle->triangleIndices().push_back (glm::uvec3 (0, 2, 3));
 	lightRectangle->recomputePerVertexNormals ();
@@ -282,10 +283,12 @@ void InitScene(std::string meshfile){
 
 	std::cout<<"startP: "<<startP[0]<<", "<<startP[1]<<", "<<startP[2]<<std::endl;
 
+	//to check position with the raterizer
 	// auto arealightsourceMaterial = std::make_shared<Material> (glm::vec3 (0., 1., 0.), 0.5, 0);
 	// scenePtr->add (lightRectangle);
 	// scenePtr->add (arealightsourceMaterial);
 	// scenePtr->assignMaterial (3, 3);
+
 	scenePtr->add (arealightsource);
 	std::cout << "initialization: " << arealightsource->is_area() << std::endl;
 
@@ -421,6 +424,7 @@ void keyCallback(GLFWwindow* windowPtr, int key, int scancode, int action, int m
 
 		//////////////////////////////
 		//TO DO: make a function
+		//use pointers instead
 		else if (action == GLFW_PRESS && key == GLFW_KEY_R) {
 
 			std::pair<Image_multichannel, Image> A, B;
@@ -443,13 +447,24 @@ void keyCallback(GLFWwindow* windowPtr, int key, int scancode, int action, int m
 
 
 			//read style exemplar and store it in A.second
-			A.second = Image("resources/Style_exemplars/test.png");
+			A.second = Image("resources/Style_exemplars/150/3.png");
 			A.second.save("test_read.png");
 			//resize it !
 
+			B.second = Image(A.second.width(), A.second.height());
+			B.second.clear(scenePtr->backgroundColor());
+			//B.second.randomize();
+
 			//initialize B.second with zeros
 
-			Console::print("Stylit");
+			Console::print("Stylit:");
+
+			//testing
+			A.first.save("A_first.png", 0);
+			B.first.save("B_first.png", 0);
+			A.second.save("A_second.png");
+			B.second.save("B_second.png");
+
 
 			run_stylit(A, B);
 			//////////////////////////////

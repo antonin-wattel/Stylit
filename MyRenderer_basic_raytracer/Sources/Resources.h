@@ -15,5 +15,5 @@ static const std::string SHADER_PATH ("Resources/Shaders/");
 static const std::string DEFAULT_MESH_FILENAME ("Resources/Models/face_lowpoly.off");
 static const std::string DEFAULT_RAYTRACED_IMAGE_OUTPUT_FILENAME ("MyRenderer_Raytraced.png");
 static const std::string DEFAULT_RASTERIZED_IMAGE_OUTPUT_FILENAME ("MyRenderer_Rasterized.png");
-static const int DEFAULT_WINDOW_WIDTH (100);
-static const int DEFAULT_WINDOW_HEIGHT (100);
+static const int DEFAULT_WINDOW_WIDTH (150);
+static const int DEFAULT_WINDOW_HEIGHT (150);

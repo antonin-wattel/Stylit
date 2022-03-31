@@ -66,14 +66,14 @@ void RayTracer::render (const std::shared_ptr<Scene> scenePtr) {
 	m_LPEs.indirect->clear(scenePtr->backgroundColor());
 
 	const auto cameraPtr = scenePtr->camera();
-	int sample_count =  10;
+	int sample_count =  200;
 	
 
 //where to put the pragma parallel
-#pragma omp parallel for
+#pragma omp parallel for collapse(3)
 	for (int y = 0; y < height; y++) {
 		//std::cout<<"y= "<<y<<std::endl;
-#pragma omp parallel for
+//#pragma omp parallel for
 		for (int x = 0; x < width; x++) {//loop over all pixels
 			glm::vec3 colorResponse (0.f, 0.f, 0.f);
 
@@ -126,7 +126,12 @@ void RayTracer::render (const std::shared_ptr<Scene> scenePtr) {
 			m_imagePtr->operator()(x, y) = color_responses.full ;
 
 			//
+			//TO DO:: use enum type instead
 			m_image_multichannelPtr->operator()(0, x, y) = color_responses.full;
+			m_image_multichannelPtr->operator()(1, x, y) = color_responses.ld12e;
+			m_image_multichannelPtr->operator()(2, x, y) = color_responses.lde;
+			m_image_multichannelPtr->operator()(3, x, y) = color_responses.lse;
+			m_image_multichannelPtr->operator()(4, x, y) = color_responses.indirect;
 			//
 
 		}
@@ -351,6 +356,7 @@ glm::vec3 RayTracer::shade(ColorResponses& color_responses, const std::shared_pt
 			glm::vec3 color = r1 * sample(color_responses, scenePtr, random_ray, 0, 0, bounces - 1) * (fs_fd.first + fs_fd.second) / pdf;
 			//color_responses.full += color;
 
+			color_responses.full += color;
 			color_responses.indirect += color;
 		
 		//

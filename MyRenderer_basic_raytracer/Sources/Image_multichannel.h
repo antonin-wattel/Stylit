@@ -17,6 +17,9 @@
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 
+#include <External/Eigen/Dense>
+using Eigen::MatrixXd;
+
 class Image_multichannel {
 public:
 	inline Image_multichannel(size_t width = 64, size_t height = 64, size_t num_channels = 5 ) :
@@ -27,6 +30,14 @@ public:
 	}
 
 	inline virtual ~Image_multichannel() {}
+
+	//TO DO: define a copy constructor !
+// 	Inline Image_multichannel(const Image_multichannel& rhs) : _graph(std::make_shared(*rhs._graph)) {
+//    // Handled by initializer list
+// 	}
+// 	State::State(const State& rhs) : _graph(std::make_shared(*rhs._graph)) {
+//    // Handled by initializer list
+// }
 
 	inline size_t width () const { return m_width; }
 
@@ -73,26 +84,35 @@ public:
 	void save (const std::string & filename, size_t channel) const;
 	void save_all_channels(const std::string& filename) const;
 
-	glm::mat3 get_patch(glm::vec2 p) {
-		//get neighborhood square patch at pixel p
-		//returns a matrix of size ??
+	inline void get_patch(const glm::vec2 &p, MatrixXd & m) const {
+		//get neighborhood square patch at pixel p (as an eigen matrix)
 		float px = p.x;
 		float py = p.y;
 
-		//Eigen::Matrix(3, 3, m_num_channels*3)
-		////indices
-		//(px - 1, py + 1);
-		//(px, py + 1);
-		//(px + 1, py + 1);
-		//(px - 1, py );
-		//(px, py);
-		//(px + 1, py);
-		//(px - 1, py - 1);
-		//(px , py - 1);
-		//(px + 1, py - 1);
+		m = MatrixXd::Zero(3*m_num_channels, 3*3);
+		m(0, 0) = 1;
 
+		for (int channel=0; channel<m_num_channels; channel++){
+			for (int k=0; k<3; k++){ 
+
+				float a, b, c, d, e, f, g, h, i;
+				a = this->operator()(channel, px-1, py+1)[k];
+				b= this->operator()(channel, px, py + 1)[k];
+				c = this->operator()(channel, px + 1, py + 1)[k];
+				d = this->operator()(channel, px - 1, py)[k];
+				e = this->operator()(channel, px, py)[k];
+				f = this->operator()(channel, px + 1, py)[k];
+				g = this->operator()(channel,px - 1, py - 1)[k];
+				h = this->operator()(channel,px , py - 1)[k];
+				i = this->operator()(channel,px + 1, py - 1)[k];
+
+				m.block<3, 3> (channel*3, k*3) << a, b, c,
+												  d, e, f,
+												  g, h, i;
+			}
+		}
+		//std::cout<<"patch: \n"<< m<<std::endl;
 	}
-
 
 
 

@@ -17,9 +17,19 @@
 #include <glm/glm.hpp>
 #include <glm/ext.hpp>
 
+#include <External/Eigen/Dense>
+
+using Eigen::MatrixXd;
+
+
+//MOVE THIS !
+#include <random>
+
+	
 
 class Image {
 public:
+
 	inline Image (size_t width = 64, size_t height = 64) : 
 		m_width (width),
 		m_height (height) {
@@ -51,6 +61,25 @@ public:
 				m_pixels[y*m_width+x] = color;
 	}
 
+	// inline void randomize() {
+	// 	//TO DO: CHANGE THIS !
+	// 	std::random_device rd;
+	// 	std::default_random_engine eng(rd());
+	// 	std::uniform_real_distribution<> distr(0.f, 1.f);
+
+	// 	for (size_t y = 0; y < m_height; y++)
+	// 		for (size_t x = 0; x < m_width; x++) {
+				
+	// 			int r1 = (distr(eng))*255;
+	// 			int r2 = (distr(eng))*255;
+	// 			int r3 = (distr(eng))*255;
+	// 			glm::vec3 rand (r1, r2, r3);
+	// 			//std::cout<<"random = "<<rand.x<<","<<rand.y<<std::endl;
+
+	// 			m_pixels[y*m_width+x] = rand;
+	// 		}
+	// }
+
 	inline void savePPM (const std::string & filename) {
 		std::ofstream out (filename.c_str ());
     	if (!out) {
@@ -72,6 +101,36 @@ public:
 
 	void save (const std::string & filename) const;
 	//void read (const std::string& filename);
+
+
+	inline void get_patch(const glm::vec2 &p, MatrixXd & m) const {
+		//get neighborhood square patch at pixel p
+		//returns a matrix of size ??
+		float px = p.x;
+		float py = p.y;
+
+		m = MatrixXd::Zero(3, 3*3*1);
+		m(0, 0) = 1;
+		for (int k=0; k<3; k++){ 
+			//do it with blocks
+
+			float a, b, c, d, e, f, g, h, i;
+			a = this->operator()(px-1, py+1)[k];
+			b= this->operator()(px, py + 1)[k];
+			c = this->operator()(px + 1, py + 1)[k];
+			d = this->operator()(px - 1, py)[k];
+			e = this->operator()(px, py)[k];
+			f = this->operator()(px + 1, py)[k];
+			g = this->operator()(px - 1, py - 1)[k];
+			h = this->operator()(px , py - 1)[k];
+			i = this->operator()(px + 1, py - 1)[k];
+
+			m.block<3, 3> (0, k*3) << a, b, c,
+									d, e, f,
+									g, h, i;
+		}
+		//std::cout<<"patch: \n"<< m<<std::endl;
+	}
 
 private:
 	size_t m_width;
