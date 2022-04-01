@@ -26,6 +26,11 @@ cd <path-to-MyRenderer>
 ```
 Example Meshes in .off format are located in `Myrenderer/Resources/Models`.
 
+**Running the example-based stylization algorithm**
+
+**TODO**
+Style exemplars are located in `Myrenderer/Resources/Style_Exemplars`.
+
 
 # Libraries (included)
 - OpenGL, for accessing your graphics processor
