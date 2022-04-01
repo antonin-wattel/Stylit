@@ -220,7 +220,7 @@ void InitScene(std::string meshfile){
 	center = bbox.center ();
 	meshScale = bbox.size ();
 	//auto mainMaterialPtr = std::make_shared<Material> (glm::vec3 (1.0, 0.85, 0.0f), 0.4, 0.0);
-	auto mainMaterialPtr = std::make_shared<Material> (glm::vec3 (1.0, 0.f, 0.0f), 0.1, 0.);
+	auto mainMaterialPtr = std::make_shared<Material> (glm::vec3 (1.0, 0.f, 0.0f), 0.1, 0.1);
 	scenePtr->add (mainMeshPtr);
 	scenePtr->add (mainMaterialPtr);
 	scenePtr->assignMaterial (0, 0);
@@ -237,7 +237,7 @@ void InitScene(std::string meshfile){
 	groundMeshPtr->triangleIndices().push_back (glm::uvec3 (0, 1, 2));
 	groundMeshPtr->triangleIndices().push_back (glm::uvec3 (0, 2, 3));
 	groundMeshPtr->recomputePerVertexNormals ();
-    auto groundMaterialPtr = std::make_shared<Material> (glm::vec3 (0.3f, 0.3f, 0.3f), 1.f, 0.);
+    auto groundMaterialPtr = std::make_shared<Material> (glm::vec3 (0.2f, 0.2f, 0.2f), 1.f, 0.);
     scenePtr->add (groundMeshPtr);
     scenePtr->add (groundMaterialPtr);
 	scenePtr->assignMaterial (1, 1);
@@ -247,34 +247,47 @@ void InitScene(std::string meshfile){
 	std::shared_ptr<Mesh> wallMeshPtr = std::make_shared<Mesh> (); //to change !
 	startP = bbox.center () + glm::vec3 (-extent*2, -bbox.height()/2.f, -extent*2);
 	wallMeshPtr->vertexPositions().push_back (startP); 
-	wallMeshPtr->vertexPositions().push_back (startP + glm::vec3 (6.5f*extent, 0.f, 0.f));
+	wallMeshPtr->vertexPositions().push_back (startP + glm::vec3 (6.5f*extent, 0.f, 0.1f*extent));
 	wallMeshPtr->vertexPositions().push_back (startP + glm::vec3 (6.5f*extent, 3.f*extent, 0.f));
-	wallMeshPtr->vertexPositions().push_back (startP + glm::vec3 (0.f, 3.f*extent, 0.f));
+	wallMeshPtr->vertexPositions().push_back (startP + glm::vec3 (0.f, 3.f*extent, 0.1f*extent));
 	wallMeshPtr->triangleIndices().push_back (glm::uvec3 (0, 1, 2));
 	wallMeshPtr->triangleIndices().push_back (glm::uvec3 (0, 2, 3));
 	wallMeshPtr->recomputePerVertexNormals ();
-    auto wallMaterialPtr = std::make_shared<Material> (glm::vec3 (0.3f, 0.3f, 0.3f), 1.f, 0.);
+    auto wallMaterialPtr = std::make_shared<Material> (glm::vec3 (0.2f, 0.2f, 0.2f), 1.f, 0.);
     scenePtr->add (wallMeshPtr);
     scenePtr->add (wallMaterialPtr);
 	scenePtr->assignMaterial (2, 2);
 
+	// Adding a second wall adapted to the loaded model
+	// std::shared_ptr<Mesh> wall2MeshPtr = std::make_shared<Mesh> (); //to change !
+	// startP = bbox.center () + glm::vec3 (-extent*2, -bbox.height()/2.f, 4.f*extent);
+	// wall2MeshPtr->vertexPositions().push_back (startP); 
+	// wall2MeshPtr->vertexPositions().push_back (startP + glm::vec3 (6.5f*extent, 0.f, -0.1f*extent));
+	// wall2MeshPtr->vertexPositions().push_back (startP + glm::vec3 (6.5f*extent, 3.f*extent, 0.f));
+	// wall2MeshPtr->vertexPositions().push_back (startP + glm::vec3 (0.f, 3.f*extent, -0.1f*extent));
+	// wall2MeshPtr->triangleIndices().push_back (glm::uvec3 (0, 1, 2));
+	// wall2MeshPtr->triangleIndices().push_back (glm::uvec3 (0, 2, 3));
+	// wall2MeshPtr->recomputePerVertexNormals ();
+    // auto wall2MaterialPtr = std::make_shared<Material> (glm::vec3 (0.5f, 0.5f, 0.5f), 1.f, 0.);
+    // scenePtr->add (wall2MeshPtr);
+    // scenePtr->add (wall2MaterialPtr);
+	// scenePtr->assignMaterial (3, 3);
+
 	// Light sources
 	//scenePtr->add (std::make_shared<LightSource> (normalize (glm::vec3(0.f, -1.f, -1.f)), glm::vec3(1.f, 1.f, 1.f), 0.8f)); // Key light
-	
-	std::shared_ptr<LightSource> light_1;
 	//scenePtr->add (std::make_shared<LightSource> (normalize (glm::vec3(-0.5f, -2.f, -0.5f)), glm::vec3(1.f, 1.f, 1.f), 0.9f, false)); // Key light
-	
 	//scenePtr->add (std::make_shared<LightSource> (normalize (glm::vec3(-2.f, -0.5f, 0.f)), glm::vec3(0.2f, 0.6f, 1.f), 0.25f)); // Fill light
 	//scenePtr->add (std::make_shared<LightSource> (normalize (glm::vec3(2.f, -0.5f, 0.f)), glm::vec3(1.0f, 0.25f, 0.1f), 0.25f)); // Rim light
 
-	std::shared_ptr<LightSource> arealightsource = (std::make_shared<LightSource> (normalize (glm::vec3(2.f, -0.5f, 0.f)), glm::vec3(1.0f, 1.0f, 1.0f), 5.0f)); // direction does not matter here 
+	std::shared_ptr<LightSource> arealightsource = (std::make_shared<LightSource> (normalize (glm::vec3(-0.5f, -2.f, -0.5f)), glm::vec3(1.0f, 1.0f, 1.0f), 6.0f)); // direction does not matter here 
+
 	std::shared_ptr<Mesh> lightRectangle  = std::make_shared<Mesh> ();
 
 	//startP = bbox.center () + glm::vec3 (0.3f*extent, 1.1f*extent, -0.1f*extent) ;//+ glm::vec3 (-extent*2, -bbox.height()/2.f, -extent*2) + glm::vec3({-0.5, -0.5, -0.5});
-	startP = bbox.center () + glm::vec3 (-0.3f*extent, 1.f*extent, -0.8f*extent) ;
+	startP = bbox.center () + glm::vec3 (-0.3f*extent, 1.5f*extent, -0.8f*extent) ;
 	lightRectangle->vertexPositions().push_back (startP); 
-	lightRectangle->vertexPositions().push_back (startP + glm::vec3 (0.f, 0.f, 2.f*extent));
-	lightRectangle->vertexPositions().push_back (startP + glm::vec3 (1.2f*extent, 0.f, 2.f*extent));
+	lightRectangle->vertexPositions().push_back (startP + glm::vec3 (0.f, -1.5f, 1.7f*extent));
+	lightRectangle->vertexPositions().push_back (startP + glm::vec3 (1.2f*extent, -1.5f, 1.7f*extent));
 	lightRectangle->vertexPositions().push_back (startP + glm::vec3 (1.2f*extent, 0.f, 0.f));
 	lightRectangle->triangleIndices().push_back (glm::uvec3 (0, 1, 2));
 	lightRectangle->triangleIndices().push_back (glm::uvec3 (0, 2, 3));
@@ -282,15 +295,14 @@ void InitScene(std::string meshfile){
 	arealightsource->area = lightRectangle;
 
 	std::cout<<"startP: "<<startP[0]<<", "<<startP[1]<<", "<<startP[2]<<std::endl;
-
-	//to check position with the raterizer
-	 /*auto arealightsourceMaterial = std::make_shared<Material> (glm::vec3 (0., 1., 0.), 0.5, 0);
-	 scenePtr->add (lightRectangle);
-	 scenePtr->add (arealightsourceMaterial);
-	 scenePtr->assignMaterial (3, 3);*/
-
 	scenePtr->add (arealightsource);
-	std::cout << "initialization: " << arealightsource->is_area() << std::endl;
+
+	//check position with the raterizer
+	//  auto arealightsourceMaterial = std::make_shared<Material> (glm::vec3 (0., 1., 0.), 0.5, 0);
+	//  scenePtr->add (lightRectangle);
+	//  scenePtr->add (arealightsourceMaterial);
+	//  scenePtr->assignMaterial (3, 3);
+
 
 	// Camera
 	int width, height;
@@ -450,7 +462,7 @@ void keyCallback(GLFWwindow* windowPtr, int key, int scancode, int action, int m
 
 			//read style exemplar and store it in A.second
 			//A.second = Image("resources/Style_exemplars/150/rose.png");
-			A.second = Image_multichannel("resources/Style_exemplars/150/rose.png");
+			A.second = Image_multichannel("resources/Style_exemplars/320/rose.png");
 			A.second.save("test_read.png", 0);
 			//resize it !
 

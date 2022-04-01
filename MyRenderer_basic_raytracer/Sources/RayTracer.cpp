@@ -23,8 +23,8 @@
 std::random_device rd;
 std::default_random_engine eng(rd());
 std::uniform_real_distribution<> distr(0.f, 1.f);
-size_t max_bounces = 2;
-//-----------------------------------
+size_t max_bounces = 1;
+//----------------------------------
 
 RayTracer::RayTracer():
 	Renderer (), 
@@ -66,7 +66,7 @@ void RayTracer::render (const std::shared_ptr<Scene> scenePtr) {
 	m_LPEs.indirect->clear(scenePtr->backgroundColor());
 
 	const auto cameraPtr = scenePtr->camera();
-	int sample_count =  200;
+	int sample_count =  10;
 	
 
 //where to put the pragma parallel
@@ -309,11 +309,11 @@ glm::vec3 RayTracer::shade(ColorResponses& color_responses, const std::shared_pt
 							color_responses.lse += (lightRadiance(light, hitPosition) * fs_fd.second * wiDotN) / float(Ni);
 						}
 
-						if (bounces >= max_bounces - 1) {//two first diffuse bounces
+						if (bounces >= max_bounces - 1) {//two diffuse bounces
 							color_responses.ld12e += (lightRadiance(light, hitPosition) * fs_fd.first * wiDotN) / float(Ni);
 						}
 						//	to fix !!!
-						if (bounces < max_bounces ) {//diffuse indirect illumination
+						if ((bounces >1) && (bounces < max_bounces) ) {//diffuse indirect illumination
 							color_responses.indirect += (lightRadiance(light, hitPosition) * fs_fd.first * wiDotN) / (float(Ni)* 1 / (2 * PI));
 						}
 				}
@@ -321,10 +321,10 @@ glm::vec3 RayTracer::shade(ColorResponses& color_responses, const std::shared_pt
 			//}
 		}
 		//---------------------------------------------------
-		if (bounces > 0) {
+		if (bounces > 1) {
 			//russian roulette
 			float rr = distr(eng);
-			if (rr > 0.2) {
+			if (rr > 0.5) {
 				bounces = 0;
 				return colorResponse;
 			}
@@ -339,7 +339,7 @@ glm::vec3 RayTracer::shade(ColorResponses& color_responses, const std::shared_pt
 		////--------
 		////generate random direction
 		//	glm::vec3 psi;
-
+		if (bounces>1){
 
 			float r1 = (distr(eng));
 			float r2 = (distr(eng));
@@ -359,7 +359,7 @@ glm::vec3 RayTracer::shade(ColorResponses& color_responses, const std::shared_pt
 
 			color_responses.full += color;
 			//color_responses.indirect += color;
-		
+		}
 		//
 		////radiance = trace(x, psi)
 		////estimated_radiance += compute_radiance(y, -psi) * BRDF(x, psi, theta) * cos(Nx, psi) / pdf(psi)

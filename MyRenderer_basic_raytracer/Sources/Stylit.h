@@ -8,6 +8,8 @@
 #include "Image.h"
 
 #include "Pyramid.h"
+#include <iostream>
+#include <chrono>
 
 using namespace std;
 
