@@ -39,4 +39,3 @@ Style exemplars are located in `Myrenderer/Resources/Style_Exemplars`.
 - GLM, for the basic mathematical tools (vectors, matrices, etc.).
 - Eigen, for matrices
 
-# Example Results
