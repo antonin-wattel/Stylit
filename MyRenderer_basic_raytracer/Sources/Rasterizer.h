@@ -16,6 +16,7 @@
 #include "Mesh.h"
 #include "Material.h"
 #include "Image.h"
+#include "Image_multichannel.h"
 #include "ShaderProgram.h"
 
 class Rasterizer : public Renderer {
@@ -29,14 +30,17 @@ public:
 	/// OpenGL context, shader pipeline initialization and GPU ressources (vertex buffers, textures, etc)
 	void init (const std::string & basepath, const std::shared_ptr<Scene> scenePtr);
 	void setResolution (int width, int height);
-	void updateDisplayedImageTexture (std::shared_ptr<Image> imagePtr);
+	//void updateDisplayedImageTexture (std::shared_ptr<Image> imagePtr);
+	void updateDisplayedImageTexture(std::shared_ptr<Image_multichannel> imagePtr);
 	void initDisplayedImage ();
 	/// Loads and compile the programmable shader pipeline
 	void loadShaderProgram (const std::string & basePath);
 	
 	virtual void render (std::shared_ptr<Scene> scenePtr) final;
-	void display (std::shared_ptr<Image> imagePtr);
-	std::shared_ptr<Image> generateImage () const;
+	//void display (std::shared_ptr<Image> imagePtr);
+	void display(std::shared_ptr<Image_multichannel> imagePtr);
+	//std::shared_ptr<Image> generateImage () const;
+	std::shared_ptr<Image_multichannel> generateImage() const;
 	void clear ();
 
 private:

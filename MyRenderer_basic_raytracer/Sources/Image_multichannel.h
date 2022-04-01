@@ -29,6 +29,8 @@ public:
 		m_pixels.resize (width*height*m_num_channels, glm::vec3 (0.f, 0.f, 0.f));
 	}
 
+	Image_multichannel(const std::string& filename);
+
 	inline virtual ~Image_multichannel() {}
 
 	//TO DO: define a copy constructor !

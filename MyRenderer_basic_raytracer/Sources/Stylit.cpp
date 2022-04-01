@@ -6,39 +6,34 @@
 
 using namespace std;
 
-void run_stylit(std::pair<Image_multichannel, Image> & A, std::pair<Image_multichannel, Image> & B) {
+//void run_stylit(std::pair<Image_multichannel, Image> & A, std::pair<Image_multichannel, Image> & B) {
+void run_stylit(std::pair<Image_multichannel, Image_multichannel> &A, std::pair<Image_multichannel, Image_multichannel> &B) {
 
-    int patch_size = 5;
+
     float mu = 2;//guidance influence
     int downsampling_ratio = 2;
-    int num_em_iterations = 10;//optimization iterations for each level
+    int num_em_iterations = 6;//optimization iterations for each level
     size_t pyramid_levels = 2;
-
-    /*Image_multichannel A_down = A.first.downsample(2);
-    std::cout << "yo" << std::endl;
-    std::cout << A_down.num_channels() << std::endl;
-    std::cout << A_down.height() << std::endl;
-    A_down.save("downsample_test.png", 1);*/
 
     ////compute image pyramids
     Pyramid ap(pyramid_levels, A.first);
-    /*Pyramid a_p(pyramid_levels, A.second);
+    Pyramid a_p(pyramid_levels, A.second);
     Pyramid bp(pyramid_levels, B.first);
-    Pyramid b_p(pyramid_levels, B.second);*/
-
-    std::cout << "created pyramid" << std::endl;
+    Pyramid b_p(pyramid_levels, B.second);
+    std::cout << "created pyramids" << std::endl;
+    //std::cout << "created pyramid" << std::endl;
     ap[1].save("downsample_test.png", 0);
 
     Image_multichannel ups = ap[1].upsample(2);
     ups.save("upsample_test.png", 0);
 
     //coarse to fine
-    //for (int pyramid_level = pyramid_levels-1; pyramid_level >= 0; pyramid_level--) {
+    for (int pyramid_level = pyramid_levels-1; pyramid_level >= 0; pyramid_level--) {
 
-        //std::cout << "pyramid depth" << pyramid_level << std::endl;
+        std::cout << "------------------------------- pyramid level = " << pyramid_level << std::endl;
         //to do: might want to use pointers instead
-        //std::pair<Image_multichannel, Image_multichannel> Ap(ap[pyramid_level], a_p[pyramid_level]);
-        //std::pair<Image_multichannel, Image_multichannel> Bp(bp[pyramid_level], b_p[pyramid_level]);
+        std::pair<Image_multichannel, Image_multichannel> Ap(ap[pyramid_level], a_p[pyramid_level]);
+        std::pair<Image_multichannel, Image_multichannel> Bp(bp[pyramid_level], b_p[pyramid_level]);
 
         //EM-like iteration scheme to minimize energy
         for (int iteration_step = 0; iteration_step < num_em_iterations; iteration_step++) {
@@ -46,50 +41,51 @@ void run_stylit(std::pair<Image_multichannel, Image> & A, std::pair<Image_multic
 
             //initialize the NNF
             std::vector<glm::vec2> NNF;
-            NNF.resize(B.second.width() * B.second.height(), glm::vec2(0, 0));
+            NNF.resize(Bp.second.width() * Bp.second.height(), glm::vec2(0, 0));
 
             //std::cout << "width" << B.second.width() << std::endl;
 
             //go over patches in B and store the NNF in A
 #pragma omp parallel for collapse(2)
-            for (int x = 1; x < B.first.width() - 1; x++) {
-                std::cout <<x << std::endl;
+            for (int x = 1; x < Bp.first.width() - 1; x++) {
+                //std::cout <<x << std::endl;
 //#pragma omp parallel for
-                for (int y = 1; y < B.first.height() - 1; y++) {
+                for (int y = 1; y < Bp.first.height() - 1; y++) {
                     //glm::vec2 q(x, y);
-                    NNF[y * B.second.width() + x] = get_NNF(glm::vec2(x, y), A, B, mu); // stores indices of best matching patches for each pixel in 
+                    NNF[y * Bp.second.width() + x] = get_NNF(glm::vec2(x, y), Ap, Bp, mu); // stores indices of best matching patches for each pixel in 
                 }
             }
 
-            std::cout <<"-------------------synthesizing"<< std::endl;
+            std::cout <<"synthesizing"<< std::endl;
             //synthesize the image b'
 #pragma omp parallel for collapse(2)
-            for (int x = 1; x < B.first.width() - 1; x++) {
+            for (int x = 1; x < Bp.first.width() - 1; x++) {
 //                std::cout << x << std::endl;
 //#pragma omp parallel for
-                for (int y = 1; y < B.first.height() - 1; y++) {
+                for (int y = 1; y < Bp.first.height() - 1; y++) {
                     //glm::vec2 q(x, y);
-                    B.second.operator()(x, y) = average(A, NNF, glm::vec2(x, y));
+                    Bp.second.operator()(0, x, y) = average(Ap, NNF, glm::vec2(x, y));
                 }
             }
            
-            //TO DO: upsample b' and put it in the next pyramid
-            //to do: save the upsampled version
+            //TO DO: upsample b' and put it in the next pyramid 
+            if (pyramid_level >0)
+                b_p[pyramid_level - 1] = Bp.second.upsample(2);
 
-            B.second.save("synthesised_image_" + std::to_string(iteration_step) + ".png");
+            Bp.second.save("synthesised_image_" + std::to_string(iteration_step) + ".png", 0);
         }   
-    //    }
+     }
 
 
     std::cout<<"saving image !"<<std::endl;
-    B.second.save("synthesised_image.png");
+    b_p[0].save("synthesised_image.png", 0);
     std::cout<<"saved synthesized image "<<std::endl;
 
 }
 
 
 //USEFUL: TO FIX !
-float error(const pair<Image_multichannel, Image> & A, const pair<Image_multichannel, Image>& B, const glm::vec2 &p, const glm::vec2 &q, const float & mu){
+float error(const pair<Image_multichannel, Image_multichannel> & A, const pair<Image_multichannel, Image_multichannel>& B, const glm::vec2 &p, const glm::vec2 &q, const float & mu){
 
     //there is probably an issue here !
 
@@ -110,7 +106,8 @@ float error(const pair<Image_multichannel, Image> & A, const pair<Image_multicha
     //return 0.f;
 }
 
-glm::vec2 get_NNF(const glm::vec2& q, const pair<Image_multichannel, Image>& A, const pair<Image_multichannel, Image>& B, const float &mu) {
+//glm::vec2 get_NNF(const glm::vec2& q, const pair<Image_multichannel, Image>& A, const pair<Image_multichannel, Image>& B, const float &mu) {
+glm::vec2 get_NNF(const glm::vec2 & q, const pair<Image_multichannel, Image_multichannel>&A, const pair<Image_multichannel, Image_multichannel>&B, const float& mu) {
     //brute force searching -> way too slow
     //TO DO: speed this up using patch match
 
@@ -138,13 +135,16 @@ glm::vec2 get_NNF(const glm::vec2& q, const pair<Image_multichannel, Image>& A, 
 
 }
 
-glm::vec3 average(const pair<Image_multichannel, Image>& A, const std::vector<glm::vec2>& NNF, const glm::vec2& q) {
+glm::vec3 average(const pair<Image_multichannel, Image_multichannel>& A, const std::vector<glm::vec2>& NNF, const glm::vec2& q) {
     //compute the average color of colocated pixels in neighbour patches
 
     //not sure this is what We are supposed to do...
     MatrixXd a_p;
     A.second.get_patch(NNF[q.y * A.second.width() + q.x], a_p); // make sure about this !!!
     
+    //get neighborhood patches
+
+
     glm::vec3 avg;
     //only the patch at q ?
     for (int k=0; k<3; k++)

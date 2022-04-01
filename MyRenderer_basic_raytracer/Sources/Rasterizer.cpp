@@ -53,7 +53,8 @@ void Rasterizer::loadShaderProgram (const std::string & basePath) {
 	}
 }
 
-void Rasterizer::updateDisplayedImageTexture (std::shared_ptr<Image> imagePtr) {
+//void Rasterizer::updateDisplayedImageTexture (std::shared_ptr<Image> imagePtr) {
+void Rasterizer::updateDisplayedImageTexture(std::shared_ptr<Image_multichannel> imagePtr) {
 	glBindTexture (GL_TEXTURE_2D, m_displayImageTex);
    	// Uploading the image data to GPU memory
 	glTexImage2D (
@@ -105,7 +106,8 @@ void Rasterizer::render (std::shared_ptr<Scene> scenePtr) {
 
 }
 
-void Rasterizer::display (std::shared_ptr<Image> imagePtr) {
+//void Rasterizer::display (std::shared_ptr<Image> imagePtr) {
+void Rasterizer::display(std::shared_ptr<Image_multichannel> imagePtr) {
 	updateDisplayedImageTexture (imagePtr);
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Erase the color and z buffers.
 	m_displayShaderProgramPtr->use (); // Activate the program to be used for upcoming primitive
@@ -119,16 +121,19 @@ void Rasterizer::display (std::shared_ptr<Image> imagePtr) {
 	glBindTexture (GL_TEXTURE_2D, 0);
 }
 
-std::shared_ptr<Image> Rasterizer::generateImage () const {
+//std::shared_ptr<Image> Rasterizer::generateImage () const {
+std::shared_ptr<Image_multichannel> Rasterizer::generateImage() const {
 	GLint viewport[4];
     glGetIntegerv (GL_VIEWPORT, viewport);
-    std::shared_ptr<Image> imagePtr = std::make_shared<Image> (viewport[2], viewport[3]);
+    //std::shared_ptr<Image> imagePtr = std::make_shared<Image> (viewport[2], viewport[3]);
+	std::shared_ptr<Image_multichannel> imagePtr = std::make_shared<Image_multichannel>(viewport[2], viewport[3], 0);
     unsigned char * data = new unsigned char [3*viewport[2]*viewport[3]];
     glReadPixels (0,0, viewport[2], viewport[3], GL_RGB, GL_UNSIGNED_BYTE, (void*)data);
     for (int x = 0; x < viewport[2]; x++)
 #pragma omp parallel for
     	for (int y = 0; y < viewport[3]; y++)
-    		imagePtr->operator() (x, y) = glm::vec3 (data[3*(y*viewport[2]+x)]/255.f, 
+    		//imagePtr->operator() (x, y) = glm::vec3 (data[3*(y*viewport[2]+x)]/255.f, 
+			imagePtr->operator() (0, x, y) = glm::vec3(data[3 * (y * viewport[2] + x)] / 255.f,
     												 data[3*(y*viewport[2]+x)+1]/255.f, 
     												 data[3*(y*viewport[2]+x)+2]/255.f);
     delete [] data;

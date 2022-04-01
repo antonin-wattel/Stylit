@@ -66,7 +66,7 @@ void RayTracer::render (const std::shared_ptr<Scene> scenePtr) {
 	m_LPEs.indirect->clear(scenePtr->backgroundColor());
 
 	const auto cameraPtr = scenePtr->camera();
-	int sample_count =  10;
+	int sample_count =  200;
 	
 
 //where to put the pragma parallel
@@ -91,8 +91,8 @@ void RayTracer::render (const std::shared_ptr<Scene> scenePtr) {
 						// MOVE THIS ! -> make a function
 						//sample a random pixel around the desired pixel
 						//to do: -> circle instead
-						float r1 = (distr(eng)-0.5)*0.2;
-						float r2 = (distr(eng)-0.5)*0.2;
+						float r1 = (distr(eng)-0.5)*0.6;
+						float r2 = (distr(eng)-0.5)*0.6;
 						// std::cout<<"r1, r2:  "<< r1<<", "<<r2<<std::endl;
 						
 						//shoot a random ray from X

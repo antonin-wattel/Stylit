@@ -323,7 +323,8 @@ void clear () {
 // The main rendering call
 void render () {
 	if (isDisplayRaytracing)
-		rasterizerPtr->display (rayTracerPtr->image ());
+		//rasterizerPtr->display (rayTracerPtr->image ());
+		rasterizerPtr->display(rayTracerPtr->image_multichannel());
 	else
 		rasterizerPtr->render (scenePtr);
 }
@@ -402,7 +403,7 @@ void keyCallback(GLFWwindow* windowPtr, int key, int scancode, int action, int m
 		else if (action == GLFW_PRESS && key == GLFW_KEY_D) {
 			Console::print("Start writing rasterized rendering to " + DEFAULT_RASTERIZED_IMAGE_OUTPUT_FILENAME);
 			auto imagePtr = rasterizerPtr->generateImage();
-			imagePtr->save(DEFAULT_RASTERIZED_IMAGE_OUTPUT_FILENAME);
+			imagePtr->save(DEFAULT_RASTERIZED_IMAGE_OUTPUT_FILENAME, 0);
 			Console::print("End writing rasterized rendering");
 		}
 		else if (action == GLFW_PRESS && key == GLFW_KEY_F) {
@@ -427,7 +428,8 @@ void keyCallback(GLFWwindow* windowPtr, int key, int scancode, int action, int m
 		//use pointers instead
 		else if (action == GLFW_PRESS && key == GLFW_KEY_R) {
 
-			std::pair<Image_multichannel, Image> A, B;
+			//std::pair<Image_multichannel, Image> A, B;
+			std::pair<Image_multichannel, Image_multichannel> A, B;
 			
 			//init scene with first mesh (high_res_sphere)
 			//store the multichannel image in A.first
@@ -447,11 +449,12 @@ void keyCallback(GLFWwindow* windowPtr, int key, int scancode, int action, int m
 
 
 			//read style exemplar and store it in A.second
-			A.second = Image("resources/Style_exemplars/150/rose.png");
-			A.second.save("test_read.png");
+			//A.second = Image("resources/Style_exemplars/150/rose.png");
+			A.second = Image_multichannel("resources/Style_exemplars/150/rose.png");
+			A.second.save("test_read.png", 0);
 			//resize it !
 
-			B.second = Image(A.second.width(), A.second.height());
+			B.second = Image_multichannel(A.second.width(), A.second.height(), 1);
 			B.second.clear(scenePtr->backgroundColor());
 			//B.second.randomize();
 
@@ -462,8 +465,8 @@ void keyCallback(GLFWwindow* windowPtr, int key, int scancode, int action, int m
 			//testing
 			A.first.save("A_first.png", 0);
 			B.first.save("B_first.png", 0);
-			A.second.save("A_second.png");
-			B.second.save("B_second.png");
+			A.second.save("A_second.png", 0);
+			B.second.save("B_second.png", 0);
 
 
 			run_stylit(A, B);

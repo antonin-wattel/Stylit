@@ -36,7 +36,7 @@ public:
 		m_pixels.resize (width*height, glm::vec3 (0.f, 0.f, 0.f));
 	}
 
-	Image (const std::string& filename) ;
+	/*Image (const std::string& filename) ;*/
 
 	inline virtual ~Image () {}
 
