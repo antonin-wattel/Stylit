@@ -6,7 +6,7 @@ The rendering algorithm is a Montecarlo pathtracer, based on source code of a ra
 
 # Instructions
 
-**Compiling**
+## Compiling
 
 ```bash
 cd <path-to-MyRenderer>
@@ -19,7 +19,7 @@ cmake --build build -–config Release
 
 The main program and its dependencies will be generated using your local compiler.
 
-**Running**
+## Running
 ```bash
 cd <path-to-MyRenderer>
 ./MyRenderer <mesh-file.off>
@@ -28,7 +28,7 @@ Example Meshes in .off format are located in `Myrenderer/Resources/Models`.
 
 **Running the example-based stylization algorithm**
 
-**TODO**
+## TODO
 Style exemplars are located in `Myrenderer/Resources/Style_Exemplars`.
 
 
