@@ -11,27 +11,35 @@ void run_stylit(std::pair<Image_multichannel, Image> & A, std::pair<Image_multic
     int patch_size = 5;
     float mu = 2;//guidance influence
     int downsampling_ratio = 2;
-    int num_em_iterations = 5;//optimization iterations for each level
-    int pyramid_levels = 2;
+    int num_em_iterations = 10;//optimization iterations for each level
+    size_t pyramid_levels = 2;
 
-    
+    /*Image_multichannel A_down = A.first.downsample(2);
+    std::cout << "yo" << std::endl;
+    std::cout << A_down.num_channels() << std::endl;
+    std::cout << A_down.height() << std::endl;
+    A_down.save("downsample_test.png", 1);*/
 
-    //compute pyramid with downsampling ratio 2
-    //...
+    ////compute image pyramids
+    Pyramid ap(pyramid_levels, A.first);
+    /*Pyramid a_p(pyramid_levels, A.second);
+    Pyramid bp(pyramid_levels, B.first);
+    Pyramid b_p(pyramid_levels, B.second);*/
 
-    
-    /*std::pair<Image_multichannel, Image_multichannel> A;
-    std::pair<Image_multichannel, Image> B;*/
+    std::cout << "created pyramid" << std::endl;
+    ap[1].save("downsample_test.png", 0);
+
+    Image_multichannel ups = ap[1].upsample(2);
+    ups.save("upsample_test.png", 0);
 
     //coarse to fine
-    //for (int pyramid_level = 0; pyramid_level < pyramid_levels; pyramid_level++) {
+    //for (int pyramid_level = pyramid_levels-1; pyramid_level >= 0; pyramid_level--) {
 
         //std::cout << "pyramid depth" << pyramid_level << std::endl;
-        //downsample using the pyramid
+        //to do: might want to use pointers instead
+        //std::pair<Image_multichannel, Image_multichannel> Ap(ap[pyramid_level], a_p[pyramid_level]);
+        //std::pair<Image_multichannel, Image_multichannel> Bp(bp[pyramid_level], b_p[pyramid_level]);
 
-
-        //b = rescale_images(b_original, 0.5 * *(num_pyramid_levels - 1 - pyramid_level))
- 
         //EM-like iteration scheme to minimize energy
         for (int iteration_step = 0; iteration_step < num_em_iterations; iteration_step++) {
             std::cout << "iteration " << iteration_step << std::endl;
@@ -45,7 +53,7 @@ void run_stylit(std::pair<Image_multichannel, Image> & A, std::pair<Image_multic
             //go over patches in B and store the NNF in A
 #pragma omp parallel for collapse(2)
             for (int x = 1; x < B.first.width() - 1; x++) {
-                //std::cout <<x << std::endl;
+                std::cout <<x << std::endl;
 //#pragma omp parallel for
                 for (int y = 1; y < B.first.height() - 1; y++) {
                     //glm::vec2 q(x, y);
@@ -64,7 +72,11 @@ void run_stylit(std::pair<Image_multichannel, Image> & A, std::pair<Image_multic
                     B.second.operator()(x, y) = average(A, NNF, glm::vec2(x, y));
                 }
             }
-            B.second.save("synthesised_image_"+std::to_string(iteration_step)+".png");
+           
+            //TO DO: upsample b' and put it in the next pyramid
+            //to do: save the upsampled version
+
+            B.second.save("synthesised_image_" + std::to_string(iteration_step) + ".png");
         }   
     //    }
 

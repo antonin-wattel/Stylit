@@ -237,7 +237,7 @@ void InitScene(std::string meshfile){
 	groundMeshPtr->triangleIndices().push_back (glm::uvec3 (0, 1, 2));
 	groundMeshPtr->triangleIndices().push_back (glm::uvec3 (0, 2, 3));
 	groundMeshPtr->recomputePerVertexNormals ();
-    auto groundMaterialPtr = std::make_shared<Material> (glm::vec3 (0.05f, 0.05f, 0.05f), 1.f, 0.);
+    auto groundMaterialPtr = std::make_shared<Material> (glm::vec3 (0.3f, 0.3f, 0.3f), 1.f, 0.);
     scenePtr->add (groundMeshPtr);
     scenePtr->add (groundMaterialPtr);
 	scenePtr->assignMaterial (1, 1);
@@ -253,7 +253,7 @@ void InitScene(std::string meshfile){
 	wallMeshPtr->triangleIndices().push_back (glm::uvec3 (0, 1, 2));
 	wallMeshPtr->triangleIndices().push_back (glm::uvec3 (0, 2, 3));
 	wallMeshPtr->recomputePerVertexNormals ();
-    auto wallMaterialPtr = std::make_shared<Material> (glm::vec3 (0.02f, 0.02f, 0.02f), 1.f, 0.);
+    auto wallMaterialPtr = std::make_shared<Material> (glm::vec3 (0.3f, 0.3f, 0.3f), 1.f, 0.);
     scenePtr->add (wallMeshPtr);
     scenePtr->add (wallMaterialPtr);
 	scenePtr->assignMaterial (2, 2);
@@ -271,11 +271,11 @@ void InitScene(std::string meshfile){
 	std::shared_ptr<Mesh> lightRectangle  = std::make_shared<Mesh> ();
 
 	//startP = bbox.center () + glm::vec3 (0.3f*extent, 1.1f*extent, -0.1f*extent) ;//+ glm::vec3 (-extent*2, -bbox.height()/2.f, -extent*2) + glm::vec3({-0.5, -0.5, -0.5});
-	startP = bbox.center () + glm::vec3 (0.01f*extent, 1.f*extent, -0.8f*extent) ;
+	startP = bbox.center () + glm::vec3 (-0.3f*extent, 1.f*extent, -0.8f*extent) ;
 	lightRectangle->vertexPositions().push_back (startP); 
 	lightRectangle->vertexPositions().push_back (startP + glm::vec3 (0.f, 0.f, 2.f*extent));
-	lightRectangle->vertexPositions().push_back (startP + glm::vec3 (2.f*extent, 0.f, 2.f*extent));
-	lightRectangle->vertexPositions().push_back (startP + glm::vec3 (2.f*extent, 0.f, 0.f));
+	lightRectangle->vertexPositions().push_back (startP + glm::vec3 (1.2f*extent, 0.f, 2.f*extent));
+	lightRectangle->vertexPositions().push_back (startP + glm::vec3 (1.2f*extent, 0.f, 0.f));
 	lightRectangle->triangleIndices().push_back (glm::uvec3 (0, 1, 2));
 	lightRectangle->triangleIndices().push_back (glm::uvec3 (0, 2, 3));
 	lightRectangle->recomputePerVertexNormals ();
@@ -284,10 +284,10 @@ void InitScene(std::string meshfile){
 	std::cout<<"startP: "<<startP[0]<<", "<<startP[1]<<", "<<startP[2]<<std::endl;
 
 	//to check position with the raterizer
-	// auto arealightsourceMaterial = std::make_shared<Material> (glm::vec3 (0., 1., 0.), 0.5, 0);
-	// scenePtr->add (lightRectangle);
-	// scenePtr->add (arealightsourceMaterial);
-	// scenePtr->assignMaterial (3, 3);
+	 /*auto arealightsourceMaterial = std::make_shared<Material> (glm::vec3 (0., 1., 0.), 0.5, 0);
+	 scenePtr->add (lightRectangle);
+	 scenePtr->add (arealightsourceMaterial);
+	 scenePtr->assignMaterial (3, 3);*/
 
 	scenePtr->add (arealightsource);
 	std::cout << "initialization: " << arealightsource->is_area() << std::endl;
@@ -447,7 +447,7 @@ void keyCallback(GLFWwindow* windowPtr, int key, int scancode, int action, int m
 
 
 			//read style exemplar and store it in A.second
-			A.second = Image("resources/Style_exemplars/150/3.png");
+			A.second = Image("resources/Style_exemplars/150/rose.png");
 			A.second.save("test_read.png");
 			//resize it !
 

@@ -27,3 +27,72 @@ void Image_multichannel::save_all_channels(const std::string& filename) const {
 		this->save(filename_channel, i);
 	}
 }
+
+
+Image_multichannel Image_multichannel::downsample(const int& f) const { //these should go in the Image_multichannel class
+//adapted from
+//https://www.geeksforgeeks.org/spatial-resolution-down-sampling-and-up-sampling-in-image-processing/
+
+    std::cout << "downsampling " << std::endl;
+    std::cout << "new width: " << this->width() / f << std::endl;
+     std::cout << "new width: " << this->width() / f << std::endl;
+    Image_multichannel res(this->width() / f, this->height() / f, this->num_channels());
+    res.clear(glm::vec3(0., 0., 0.));
+
+    for (int channel = 0; channel < res.num_channels(); channel++) {
+        for (int x = 0; x < this->width(); x++) {
+            for (int y = 0; y < this->height(); y++) {
+                //careful with indices
+                if ((0 <= (x / f) < res.width()) && (0 <= (y / f) < res.height()))
+                    //std::cout << "oyeaaa !" << std::endl;
+                    res.operator()(channel, x/f, y/f) = this->operator()(channel, x, y);
+            }
+        }
+    }
+    std::cout << "downsampled" << std::endl;
+
+    return res;
+}
+
+
+Image_multichannel Image_multichannel::upsample(const int& f) const {
+//adapted from
+//https://www.geeksforgeeks.org/spatial-resolution-down-sampling-and-up-sampling-in-image-processing/
+
+    Image_multichannel res(this->width() * f, this->height() * f, this->num_channels());
+    res.clear(glm::vec3(0., 0., 0.));
+
+    for (int channel = 0; channel < res.num_channels(); channel++) {
+        for (int x = 0; x < res.width()-1; x+=f) {
+            for (int y = 0; y < res.height()-1; y+=f) {
+                //careful with indices
+                //if ((0 <= (x / f) < this.width()) && (0 <= (y / f) < this.height()))
+                    //std::cout << "oyeaaa !" << std::endl;
+                    res.operator()(channel, x, y) = this->operator()(channel, x/f, y/f);
+            }
+        }
+    }
+
+    //replicating rows
+    for (int channel = 0; channel < res.num_channels(); channel++) {
+        for (int x = 1; x < (res.width() - (f-1)); x+=f) {
+            for (int y = 0; y < (res.height() -(f-1)); y++) {
+                for (int i = x; i < x + (f - 1); i++) 
+                    res.operator()(channel, x, y) = res.operator()(channel, i-1, y);
+            }
+        }
+    }
+
+    for (int channel = 0; channel < res.num_channels(); channel++) {
+        for (int x = 0; x < (res.width() -1); x ++) {
+            for (int y = 1; y < (res.height() - 1); y+=f) {
+                for (int j = y; j < y + (f - 1); j++)
+                    res.operator()(channel, x, y) = res.operator()(channel, x, j-1);
+            }
+        }
+    }
+
+    return res;
+} 
+   
+//TO DO : WRITE gaussian filter function

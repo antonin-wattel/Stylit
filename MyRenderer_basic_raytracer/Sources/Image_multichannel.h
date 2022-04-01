@@ -114,6 +114,9 @@ public:
 		//std::cout<<"patch: \n"<< m<<std::endl;
 	}
 
+	Image_multichannel downsample(const int& f) const;
+	Image_multichannel upsample(const int& f) const;
+
 
 
 private:

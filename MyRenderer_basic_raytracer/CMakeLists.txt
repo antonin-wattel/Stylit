@@ -43,7 +43,8 @@ add_executable (
 	Sources/Stylit.cpp
 	Sources/Image_multichannel.h
 	Sources/Image_multichannel.cpp
-  )
+	Sources/Pyramid.h
+	Sources/Pyramid.cpp)
 
 set_target_properties(MyRenderer PROPERTIES
     CXX_STANDARD 17

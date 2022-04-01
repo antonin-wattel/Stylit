@@ -7,6 +7,8 @@
 #include "Image_multichannel.h"
 #include "Image.h"
 
+#include "Pyramid.h"
+
 using namespace std;
 
 //TO DO: MAKE A CLASS

@@ -66,7 +66,7 @@ void RayTracer::render (const std::shared_ptr<Scene> scenePtr) {
 	m_LPEs.indirect->clear(scenePtr->backgroundColor());
 
 	const auto cameraPtr = scenePtr->camera();
-	int sample_count =  200;
+	int sample_count =  10;
 	
 
 //where to put the pragma parallel
@@ -313,9 +313,9 @@ glm::vec3 RayTracer::shade(ColorResponses& color_responses, const std::shared_pt
 							color_responses.ld12e += (lightRadiance(light, hitPosition) * fs_fd.first * wiDotN) / float(Ni);
 						}
 						//	to fix !!!
-						//if (bounces < max_bounces ) {//two first diffuse bounces
-						//	color_responses.indirect += (lightRadiance(light, hitPosition) * fs_fd.first * wiDotN) / float(Ni);
-						//}
+						if (bounces < max_bounces ) {//diffuse indirect illumination
+							color_responses.indirect += (lightRadiance(light, hitPosition) * fs_fd.first * wiDotN) / (float(Ni)* 1 / (2 * PI));
+						}
 				}
 
 			//}
@@ -353,11 +353,12 @@ glm::vec3 RayTracer::shade(ColorResponses& color_responses, const std::shared_pt
 			//not so sure about this...
 			fs_fd = materialReflectance(scenePtr, materialPtr, random_point, wo, hitNormal);
 
-			glm::vec3 color = r1 * sample(color_responses, scenePtr, random_ray, 0, 0, bounces - 1) * (fs_fd.first + fs_fd.second) / pdf;
+			//glm::vec3 color = r1 * sample(color_responses, scenePtr, random_ray, 0, 0, bounces - 1) * (fs_fd.first + fs_fd.second) / pdf;
+			glm::vec3 color = sample(color_responses, scenePtr, random_ray, 0, 0, bounces - 1) * (fs_fd.first + fs_fd.second) / pdf;
 			//color_responses.full += color;
 
 			color_responses.full += color;
-			color_responses.indirect += color;
+			//color_responses.indirect += color;
 		
 		//
 		////radiance = trace(x, psi)
